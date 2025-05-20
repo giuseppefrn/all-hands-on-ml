@@ -16,21 +16,21 @@ joblib.dump(model, "model.pkl")
 #### 2. Use Provided FastAPI Script
 Make sure `model.pkl` is in the same folder as `serve_model_fastapi.py`.
 
-#### 3. Install Requirements
+#### 3. Build Docker Image
 ```bash
-pip install fastapi uvicorn scikit-learn numpy joblib
+docker build -t fastapi-model-server .
 ```
 
-#### 4. Run the Server
+#### 4. Run the Container
 ```bash
-uvicorn serve_model_fastapi:app --reload
+docker run --rm -p 8000:8000 fastapi-model-server
 ```
 
-By default, FastAPI will serve at http://127.0.0.1:8000
+By default, FastAPI will serve at http://0.0.0.0:8000
 
 #### 5. Test with `curl`
 ```bash
-curl -X POST http://127.0.0.1:8000/predict \
+curl curl -X POST http://0.0.0.0:8000/predict \
      -H "Content-Type: application/json" \
      -d '{"data": [5.1, 3.5, 1.4, 0.2]}'
 ```
@@ -41,6 +41,6 @@ Or with multiple samples:
 ```
 
 #### 6. Swagger UI for Testing
-Visit: http://127.0.0.1:8000/docs
+Visit: http://0.0.0.0:8000/docs
 
 FastAPI automatically provides a web interface to test your model.

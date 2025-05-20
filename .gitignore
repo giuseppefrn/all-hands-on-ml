@@ -1,3 +1,5 @@
 .idea
 data
 artifacts
+/deployment/mlflow/model/
+**/model.pkl

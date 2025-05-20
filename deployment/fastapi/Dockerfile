@@ -1,4 +1,3 @@
-
 # Use official Python image
 FROM python:3.13-slim
 
@@ -9,13 +8,13 @@ ENV MLFLOW_TRACKING_URI=http://localhost:5000
 WORKDIR /app
 
 # Copy model and script
-COPY model /app/model
+COPY . /app/
 
 # Install dependencies
-RUN pip install --upgrade pip & pip install -r /app/model/requirements.txt
+RUN pip install --upgrade pip & pip install fastapi uvicorn scikit-learn numpy joblib
 
 # Expose port
-EXPOSE 1234
+EXPOSE 8000
 
 # Command to serve the model using MLflow
-CMD ["mlflow", "models", "serve", "-m", "model", "--no-conda", "-h", "0.0.0.0", "-p", "1234"]
+CMD ["uvicorn", "serve_model_fastapi:app", "--host", "0.0.0.0", "--port", "8000"]
