@@ -59,12 +59,36 @@ print("Best trial:")
 print(study.best_trial.params)
 
 # ----------------------------------------
-# Final Model Evaluation
+# Final Model Evaluation with MLflow Tracking and Model Registry
 # ----------------------------------------
+
+# Extract the best hyperparameters from Optuna study
 best_params = study.best_trial.params
+
+# Create and train the final model with the best parameters
 final_model = RandomForestClassifier(**best_params, random_state=42)
 final_model.fit(X_train, y_train)
-y_pred = final_model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
 
+# Make predictions
+y_pred = final_model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
 print("\nFinal Model Accuracy on Test Set:", accuracy)
+
+# Log final model and metrics to MLflow and register the model
+with mlflow.start_run(run_name="final_model") as run:
+    # Log best hyperparameters
+    mlflow.log_params(best_params)
+
+    # Log final accuracy
+    mlflow.log_metric("test_accuracy", accuracy)
+
+    # Log and register the model
+    mlflow.sklearn.log_model(
+        sk_model=final_model,
+        artifact_path="final_rf_model",
+        registered_model_name="Final_RF_Model"  # The model will be registered in the MLflow Model Registry
+    )
+
+    print("\nFinal model logged and registered in MLflow. Run ID:", run.info.run_id)
