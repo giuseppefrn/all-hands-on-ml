@@ -26,15 +26,26 @@ n_adults = 1000
 n_youth = 300
 
 def simulate_data(n, age_range):
+    if age_range[0] <= 20:
+        # Youth-specific parameters with higher mean and lower thresholds
+        systolic_bp = np.random.normal(120, 15, n)
+        cholesterol = np.random.normal(210, 25, n)
+        bp_threshold = 130
+        chol_threshold = 230
+    else:
+        systolic_bp = np.random.normal(130, 10, n)
+        cholesterol = np.random.normal(200, 25, n)
+        bp_threshold = 140
+        chol_threshold = 240
+
     data = pd.DataFrame({
         'age': np.random.randint(age_range[0], age_range[1], n),
         'bmi': np.random.normal(25 if age_range[0] > 20 else 20, 3, n),
-        'systolic_bp': np.random.normal(130 if age_range[0] > 20 else 115, 10, n),
-        'cholesterol': np.random.normal(200, 25, n),
+        'systolic_bp': systolic_bp,
+        'cholesterol': cholesterol,
         'smoker': np.random.randint(0, 2, n),
     })
-    # Target: Hypertension if bp > 140 or cholesterol > 240
-    data['hypertension'] = ((data['systolic_bp'] > 140) | (data['cholesterol'] > 240)).astype(int)
+    data['hypertension'] = ((systolic_bp > bp_threshold) | (cholesterol > chol_threshold)).astype(int)
     return data
 
 adult_data = simulate_data(n_adults, (30, 65))
