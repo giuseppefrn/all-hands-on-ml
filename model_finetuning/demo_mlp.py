@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -6,9 +7,21 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import precision_recall_fscore_support
+import random
+
+# Set random seeds for reproducibility
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(42)
 
 # Simulate a medical dataset for adults and young people
-np.random.seed(42)
 n_adults = 1000
 n_youth = 300
 
