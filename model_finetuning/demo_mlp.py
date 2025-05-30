@@ -86,6 +86,11 @@ with torch.no_grad():
         y_val_adult_tensor, val_preds_adult, average='binary'
     )
 
+print("\n--- Adult Validation Performance ---")
+print(f"Precision: {adult_precision:.4f}")
+print(f"Recall:    {adult_recall:.4f}")
+print(f"F1 Score:  {adult_f1:.4f}")
+
 # Finetune on youth data (only head layer)
 X_youth = youth_data.drop('hypertension', axis=1)
 y_youth = youth_data['hypertension']
@@ -95,11 +100,32 @@ X_val_youth_scaled = scaler.transform(X_val_youth)
 X_train_youth_tensor, y_train_youth_tensor = to_tensor(X_train_youth_scaled, y_train_youth)
 X_val_youth_tensor, y_val_youth_tensor = to_tensor(X_val_youth_scaled, y_val_youth)
 
+# Evaluate on youth validation BEFORE finetuning
+model.eval()
+with torch.no_grad():
+    val_preds_youth_before = model(X_val_youth_tensor).round()
+    youth_precision_before, youth_recall_before, youth_f1_before, _ = precision_recall_fscore_support(
+        y_val_youth_tensor, val_preds_youth_before, average='binary'
+    )
+
+print("\n--- Youth Validation Performance (Before Finetuning) ---")
+print(f"Precision: {youth_precision_before:.4f}")
+print(f"Recall:    {youth_recall_before:.4f}")
+print(f"F1 Score:  {youth_f1_before:.4f}")
+
+print("\n--- Freezing model body ---")
+for name, param in model.named_parameters():
+    print(f"{name:30} - Trainable: {param.requires_grad}")
+
 # Freeze body, reinit head
 for param in model.body.parameters():
     param.requires_grad = False
 model.head = nn.Linear(16, 1)
 optimizer = optim.Adam(model.head.parameters(), lr=0.01)
+
+print("\n--- Updated trainable parameters after reinitializing head ---")
+for name, param in model.named_parameters():
+    print(f"{name:30} - Trainable: {param.requires_grad}")
 
 train_model(model, X_train_youth_tensor, y_train_youth_tensor, epochs=20)
 
@@ -110,6 +136,11 @@ with torch.no_grad():
     youth_precision, youth_recall, youth_f1, _ = precision_recall_fscore_support(
         y_val_youth_tensor, val_preds_youth, average='binary'
     )
+
+print("\n--- Youth Validation Performance (After Finetuning) ---")
+print(f"Precision: {youth_precision:.4f}")
+print(f"Recall:    {youth_recall:.4f}")
+print(f"F1 Score:  {youth_f1:.4f}")
 
 # Display reports
 report_df = pd.DataFrame({
